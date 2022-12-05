@@ -7,14 +7,35 @@
 
 **Table of Contents**
 
-- [Installation](#installation)
-- [License](#license)
+- [maplocal](#maplocal)
+  - [Installation](#installation)
+  - [Use Case](#use-case)
+    - [Examples](#examples)
+  - [License](#license)
 
 ## Installation
 
 ```console
 pip install maplocal
 ```
+
+## Use Case
+
+You manage a cloud-hosted service that is attached to file-server storing user data.
+Users have access to your service, but also separately have access to file-directory through their computers.
+The way that the file-server is mounted is different for the user and for the cloud hosted service.
+This provides a way to map the root directory of the users machine and the file server.
+It also provides a **hacky, potentially unsafe**[1][1] hook that allows a locally saved script file to
+inject the functions `openfile` and `runcmd` that are intended to provide ways for the server
+to open a file from the users machine and run a shell command on the users machine.
+
+[1]: a script file placed in a known directory allows users to inject code into the program.
+Not inherently unsafe but could be used as a way to inject malicious code by bad-actors.
+
+### Examples
+
+1. running WSL, Ubuntu. Opening files saved in the Ubuntu file system with Windows Programs.
+2. running WSL, Ubuntu. Opening files on the windows files system (mounted C:\drive).
 
 ## License
 
