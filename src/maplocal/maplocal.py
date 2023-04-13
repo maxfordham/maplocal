@@ -74,3 +74,16 @@ def openlocal(path, mapenv=MAPENV):
 
 def runlocal(cmd, mapenv=MAPENV):
     return mapenv.runcmd(cmd)
+
+def maplocal_openlocal_exists():
+    if isinstance(MAPENV.openpath, ty.Callable):
+        return True
+    else:
+        return False
+    
+def maplocal_runlocal_exists():
+    if isinstance(MAPENV.runcmd, ty.Callable):
+        return True
+    else:
+        return False
+    
