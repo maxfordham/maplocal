@@ -24,9 +24,10 @@ def _remove_root(
     assert isinstance(
         root, pathlib.PurePath
     ), f"root ({root}) passed to _remove_root fn not a valid pathlib.PurePath"
+    path = pathlib.Path(path).absolute()
     if root in path.parents:
         rootfound = True
-        parts = pathlib.Path(path).absolute().parts
+        parts = pathlib.Path(path).parts
         n = len(root.parts)
         newpath = pathlib.PurePath(*parts[n:])
     else:
