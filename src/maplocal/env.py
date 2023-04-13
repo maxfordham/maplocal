@@ -4,6 +4,9 @@ import importlib.util
 import sys
 import typing as ty
 import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 MAPOS = {"windows": pathlib.PureWindowsPath, "linux": pathlib.PurePosixPath}
@@ -67,7 +70,13 @@ class MapLocalEnv(BaseSettings):
             else:
                 return None
         else:
-            return pathlib.PurePath(v)
+            p = pathlib.Path(v)
+            if p.is_file():
+                return p
+            else:
+                logger.warning(f"for maplocal to load openpath and runcmd callable, {str(p)} must exist with functions `openpath` and `runcmd`")
+                return None
+            
 
     @validator("openpath", always=True)
     def _openpath(cls, v, values):
