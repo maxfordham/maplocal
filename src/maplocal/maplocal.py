@@ -1,9 +1,9 @@
 import pathlib
 import typing as ty
 import logging
-
 from maplocal.env import MapLocalEnv
 
+logger = logging.getLogger(__name__)
 MAPENV = MapLocalEnv()
 
 def _remove_root(
@@ -34,6 +34,14 @@ def _remove_root(
         newpath = path
     return rootfound, newpath
 
+def roots_found(oldroot, newroot):
+    if oldroot is None:
+        logger.warning("oldroot is None. set this by setting the env var: MAPLOCAL_OLDROOT")
+        if newroot is None:
+            logger.warning("newroot is None. set this by setting the env var: MAPLOCAL_NEWROOT")
+            return False
+        return False
+    return True
 
 def maplocal(
     path: pathlib.PurePath,
@@ -44,6 +52,8 @@ def maplocal(
         oldroot = MAPENV.MAPLOCAL_FROM
     if newroot is None:
         newroot = MAPENV.MAPLOCAL_TO
+    if not roots_found(oldroot, newroot):
+        return path
     path = pathlib.PurePath(path)
     rootfound, newpath = _remove_root(path, oldroot)
     if not rootfound:
@@ -59,6 +69,8 @@ def mapremote(path: pathlib.PurePath,
         oldroot = MAPENV.MAPLOCAL_TO
     if newroot is None:
         newroot = MAPENV.MAPLOCAL_FROM
+    if not roots_found(oldroot, newroot):
+        return path
     path = pathlib.PurePath(path)
     rootfound, newpath = _remove_root(path, oldroot)
     if not rootfound:
