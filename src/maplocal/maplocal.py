@@ -26,7 +26,7 @@ def _remove_root(
     ), f"root ({root}) passed to _remove_root fn not a valid pathlib.PurePath"
     if root in path.parents:
         rootfound = True
-        parts = pathlib.Path(path).parts
+        parts = pathlib.Path(path).absolute().parts
         n = len(root.parts)
         newpath = pathlib.PurePath(*parts[n:])
     else:
