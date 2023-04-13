@@ -10,8 +10,10 @@ MAPOS = {"windows": pathlib.PureWindowsPath, "linux": pathlib.PurePosixPath}
 PLATFORM = sys.platform
 
 def load(path, fn_name: str):
+    if isinstance(path, str):
+        path = pathlib.Path(path)
     if not path.is_file():
-        raise ValueError(f"{str(p)} must be a file")
+        raise ValueError(f"{str(path)} must be a file")
     try:
         spec = importlib.util.spec_from_file_location("maplocal", path)
         foo = importlib.util.module_from_spec(spec)

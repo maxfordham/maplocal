@@ -3,8 +3,8 @@ import typing as ty
 import logging
 
 from maplocal.env import MapLocalEnv
+
 MAPENV = MapLocalEnv()
-print('adsf')
 
 def _remove_root(
     path: pathlib.PurePath, root: ty.Optional[pathlib.PurePath]
