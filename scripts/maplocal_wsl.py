@@ -17,4 +17,4 @@ def runcmd(cmd):
 def openpath(path):
     if isinstance(path, pathlib.PurePath):
         path = str(path)
-    return runcmd(f"explorer.exe '\\{path}'")
+    return runcmd(f"explorer.exe '{path}'")

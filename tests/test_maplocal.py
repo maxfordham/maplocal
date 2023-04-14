@@ -12,8 +12,8 @@ DIR_REPO = PATH_TEST.parents[1]
 
 class TestMAPENV:
     def test_MAPENV(self):
-        assert MAPENV.MAPLOCAL_FROM == pathlib.PurePosixPath("/home/jovyan")
-        assert MAPENV.MAPLOCAL_TO == pathlib.PureWindowsPath('//wsl.localhost/20221021/home/jovyan')
+        assert MAPENV.MAPLOCAL_FROM == pathlib.PurePosixPath("/home")
+        assert MAPENV.MAPLOCAL_TO == pathlib.PureWindowsPath('//wsl.localhost/20221021/home')
 
 
 class TestRemoveRoot:
