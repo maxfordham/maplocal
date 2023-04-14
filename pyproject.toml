@@ -1,5 +1,5 @@
 [build-system]
-requires = ["hatchling"]
+requires = ["hatchling", "hatch-vcs"]
 build-backend = "hatchling.build"
 
 [project]
@@ -30,7 +30,8 @@ Issues = "https://github.com/unknown/maplocal/issues"
 Source = "https://github.com/unknown/maplocal"
 
 [tool.hatch.version]
-path = "src/maplocal/__about__.py"
+source = "vcs"
+version-file = "_version.py"
 
 [tool.hatch.envs.default]
 dependencies = ["pytest", "pytest-cov"]
