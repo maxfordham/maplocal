@@ -19,6 +19,18 @@
 pip install maplocal
 ```
 
+## Configuration
+
+to configure `maplocal` the following env vars must be set:  
+
+`MAPLOCAL_OS_FROM`: str = "linux"  #  TODO make enum
+`MAPLOCAL_OS_TO`: str = "windows"  #  TODO make enum
+`MAPLOCAL_FROM`: ty.Optional[pathlib.PurePath] = None  # the rootdir to be removed from path
+'MAPLOCAL_TO': ty.Optional[pathlib.PurePath] = None  # the rootdir to be added to path
+'MAPLOCAL_SCRIPT_PATH': ty.Optional[pathlib.Path] = None  # a custom script that uses the vars above to create the `openpath` and `runcmd` functions
+
+in the `MAPLOCAL_SCRIPT_PATH` dir is a python file that must contain functions named `openpath` and `runcmd`. 
+
 ## Use Case
 
 You manage a cloud-hosted service that is attached to file-server storing user data.
