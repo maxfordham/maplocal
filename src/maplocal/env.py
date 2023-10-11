@@ -1,10 +1,11 @@
-from pydantic import BaseModel, BaseSettings, Field, validator
 import pathlib
 import importlib.util
 import sys
 import typing as ty
 import os
 import logging
+from pydantic import validator
+from pydantic_settings import BaseSettings
 
 logger = logging.getLogger(__name__)
 
