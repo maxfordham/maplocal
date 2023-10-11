@@ -51,16 +51,22 @@ class MapLocalEnv(BaseSettings):
     @model_validator(mode="after")
     @classmethod
     def _set_values(cls, data: ty.Any):
-        if data.MAPLOCAL_FROM is not None:
+        if data.MAPLOCAL_FROM is None:
+            data.MAPLOCAL_FROM = MAPOS[data.MAPLOCAL_OS_FROM]("/home")
+        else:
             data.MAPLOCAL_FROM = MAPOS[data.MAPLOCAL_OS_FROM](data.MAPLOCAL_FROM)
         
-        if data.MAPLOCAL_TO is not None:
+        if data.MAPLOCAL_TO is None:
+            data.MAPLOCAL_TO = MAPOS[data.MAPLOCAL_OS_TO](f"\\\\wsl.localhost\\{os.environ['WSL_DISTRO_NAME']}\\home")
+        else:
             data.MAPLOCAL_TO = MAPOS[data.MAPLOCAL_OS_TO](data.MAPLOCAL_TO)
 
         if data.MAPLOCAL_SCRIPT_PATH is None:
             p = get_maplocal_path()
             if p.is_file():
                 data.MAPLOCAL_SCRIPT_PATH = p
+            else:
+                data.MAPLOCAL_SCRIPT_PATH = pathlib.Path(__file__).parent / "maplocal_wsl.py"
         else:
             p = pathlib.Path(data.MAPLOCAL_SCRIPT_PATH)
             if p.is_file():

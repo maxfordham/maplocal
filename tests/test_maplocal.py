@@ -1,11 +1,9 @@
-from maplocal.maplocal import _remove_root, maplocal
-import os
 import pathlib
 import typing as ty
-import pytest
-from maplocal.maplocal import MAPENV, openlocal, runlocal
 from maplocal.env import MapLocalEnv
+from maplocal.maplocal import _remove_root, openlocal, maplocal
 
+MAPENV = MapLocalEnv()
 PATH_TEST = pathlib.Path(__file__)
 DIR_REPO = PATH_TEST.parents[1]
 
@@ -13,7 +11,7 @@ DIR_REPO = PATH_TEST.parents[1]
 class TestMAPENV:
     def test_MAPENV(self):
         assert MAPENV.MAPLOCAL_FROM == pathlib.PurePosixPath("/home")
-        assert MAPENV.MAPLOCAL_TO == pathlib.PureWindowsPath('//wsl.localhost/20221021/home')
+        assert MAPENV.MAPLOCAL_TO == pathlib.PureWindowsPath('//wsl.localhost/ubuntu_2004_jovyan/home')
 
 
 class TestRemoveRoot:
@@ -25,17 +23,16 @@ class TestRemoveRoot:
 
 class TestMapLocal:
     def test_map_local(self):
-        path = maplocal(PATH_TEST)
+        path = maplocal(PATH_TEST, oldroot=MAPENV.MAPLOCAL_FROM, newroot=MAPENV.MAPLOCAL_TO)
         assert (
             str(path)
-            == '\\\\wsl.localhost\\20221021\\home\\jovyan\\maplocal\\tests\\test_maplocal.py'
+            == "\\\\wsl.localhost\\ubuntu_2004_jovyan" + str(PATH_TEST).replace("/", "\\")
         )
-        print(path)
-        print("done")
 
 
 class TestWslExample:
     def test_map_local(self):
-        openlocal(PATH_TEST)
+        """This will open the file in windows explorer"""
+        openlocal(PATH_TEST, mapenv=MAPENV)
         assert isinstance(MAPENV.openpath, ty.Callable)
 
