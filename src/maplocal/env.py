@@ -1,10 +1,11 @@
-from pydantic import BaseModel, BaseSettings, Field, validator
 import pathlib
 import importlib.util
 import sys
 import typing as ty
 import os
 import logging
+from pydantic import Field, model_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 logger = logging.getLogger(__name__)
 
@@ -41,83 +42,56 @@ def get_maplocal_path():
 class MapLocalEnv(BaseSettings):
     MAPLOCAL_OS_FROM: str = "linux"  #  TODO make enum
     MAPLOCAL_OS_TO: str = "windows"
-    MAPLOCAL_FROM: ty.Optional[pathlib.PurePath] = None
-    MAPLOCAL_TO: ty.Optional[pathlib.PurePath] = None
-    MAPLOCAL_SCRIPT_PATH: ty.Optional[pathlib.Path] = None
-    openpath: ty.Optional[ty.Callable[[pathlib.Path], bool]] = None
-    runcmd: ty.Optional[ty.Callable[[str], None]] = None
+    MAPLOCAL_FROM: ty.Optional[pathlib.PurePath] = Field(None)
+    MAPLOCAL_TO: ty.Optional[pathlib.PurePath] = Field(None)
+    MAPLOCAL_SCRIPT_PATH: ty.Optional[pathlib.Path] = Field(None)
+    openpath: ty.Optional[ty.Callable[[pathlib.Path], bool]] = Field(None)
+    runcmd: ty.Optional[ty.Callable[[str], None]] = Field(None)
 
-    @validator("MAPLOCAL_FROM", always=True, pre=True)
-    def _MAPLOCAL_FROM(cls, v, values):
-        if v is None:
-            return None
+    @model_validator(mode="after")
+    @classmethod
+    def _set_values(cls, data: ty.Any):
+        if data.MAPLOCAL_FROM is None:
+            data.MAPLOCAL_FROM = MAPOS[data.MAPLOCAL_OS_FROM]("/home")
         else:
-            return MAPOS[values["MAPLOCAL_OS_FROM"]](v)
-
-    @validator("MAPLOCAL_TO", always=True, pre=True)
-    def _MAPLOCAL_TO(cls, v, values):
-        if v is None:
-            return None
-        else:
-            return MAPOS[values["MAPLOCAL_OS_TO"]](v)
+            data.MAPLOCAL_FROM = MAPOS[data.MAPLOCAL_OS_FROM](data.MAPLOCAL_FROM)
         
-    @validator("MAPLOCAL_SCRIPT_PATH", always=True, pre=True)
-    def _MAPLOCAL_SCRIPT_PATH(cls, v, values):
-        if v is None:
+        if data.MAPLOCAL_TO is None:
+            data.MAPLOCAL_TO = MAPOS[data.MAPLOCAL_OS_TO](f"\\\\wsl.localhost\\{os.environ['WSL_DISTRO_NAME']}\\home")
+        else:
+            data.MAPLOCAL_TO = MAPOS[data.MAPLOCAL_OS_TO](data.MAPLOCAL_TO)
+
+        if data.MAPLOCAL_SCRIPT_PATH is None:
             p = get_maplocal_path()
             if p.is_file():
-                return p
+                data.MAPLOCAL_SCRIPT_PATH = p
             else:
-                return None
+                data.MAPLOCAL_SCRIPT_PATH = pathlib.Path(__file__).parent / "maplocal_wsl.py"
         else:
-            p = pathlib.Path(v)
+            p = pathlib.Path(data.MAPLOCAL_SCRIPT_PATH)
             if p.is_file():
-                return p
+                data.MAPLOCAL_SCRIPT_PATH = p
             else:
                 logger.warning(f"for maplocal to load openpath and runcmd callable, {str(p)} must exist with functions `openpath` and `runcmd`")
-                return None
-            
-
-    @validator("openpath", always=True)
-    def _openpath(cls, v, values):
-        if "MAPLOCAL_SCRIPT_PATH" not in values:
-            return None
-        p = values["MAPLOCAL_SCRIPT_PATH"]
+        
+        if "MAPLOCAL_SCRIPT_PATH" not in data.model_fields:
+            data.openpath = None
+        p = data.MAPLOCAL_SCRIPT_PATH
         if p is not None:
-            return load(p, "openpath")
+            data.openpath = load(p, "openpath")
         else:
-            return None
+            data.openpath = None
 
-    @validator("runcmd", always=True)
-    def _runcmd(cls, v, values):
-        if "MAPLOCAL_SCRIPT_PATH" not in values:
-            return None
-        p = values["MAPLOCAL_SCRIPT_PATH"]
-        if p is not None:
-            return load(p, "runcmd")
+        if "MAPLOCAL_SCRIPT_PATH" not in data.model_fields:
+            data.runcmd = None
         else:
-            return None
+            p = data.MAPLOCAL_SCRIPT_PATH
+            if p is not None:
+                data.runcmd = load(p, "runcmd")
+            else:
+                data.runcmd = None
 
-    class Config:
-        # env_file = PATH_ENV
-        env_file_encoding = "utf-8"
-        arbitrary_types_allowed=True
+        return data
 
+    model_config = SettingsConfigDict(env_file_encoding="utf-8", arbitrary_types_allowed=True)
 
-if __name__ == "__main__":
-
-    DIR_REPO = pathlib.Path("/home/jovyan/maplocal")
-    PATH_ENV = DIR_REPO / "tests" / ".env"
-    PATH_SCRIPT = DIR_REPO / "scripts" / "maplocal_wsl.py"
-    assert PATH_ENV.is_file()
-    MAPENV = MapLocalEnv(_env_file=PATH_ENV)
-    print('done')
-    # DIR_REPO = pathlib.Path(__file__).parents[2]
-    # PATH_ENV = DIR_REPO /  ".env"
-    # PATH_SCRIPT = DIR_REPO / "scripts" / "maplocal_wsl.py"
-    # # assert PATH_ENV.is_file()
-    # MAPENV = MapLocalEnv(
-    #     MAPLOCAL_FROM="/home/jovyan",
-    #     MAPLOCAL_TO="\\\\wsl$\\20221021\\home\\jovyan",
-    #     MAPLOCAL_SCRIPT_PATH=PATH_SCRIPT,
-    # )
