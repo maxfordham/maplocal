@@ -21,7 +21,7 @@ classifiers = [
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
-dependencies = ["pydantic>2, pydantic-settings"]
+dependencies = ["pydantic>2", "pydantic-settings"]
 dynamic = ["version"]
 
 [project.urls]
