@@ -7,7 +7,8 @@ channels:
   - conda-forge
 dependencies:
   - python
-  - pydantic=1.9
+  - pydantic>2
+  - pydantic-settings
   - python-dotenv
   - jupyterlab>=3.0.14
   - ipywidgets
