@@ -39,6 +39,10 @@ def get_maplocal_dir():
 def get_maplocal_path():
     return get_maplocal_dir() / 'maplocal.py'
 
+def get_wsl_distro_name():
+    return (lambda: None if not "WSL_DISTRO_NAME" in os.environ else os.environ['WSL_DISTRO_NAME'])()
+  
+
 class MapLocalEnv(BaseSettings):
     MAPLOCAL_OS_FROM: str = "linux"  #  TODO make enum
     MAPLOCAL_OS_TO: str = "windows"
@@ -51,15 +55,21 @@ class MapLocalEnv(BaseSettings):
     @model_validator(mode="after")
     @classmethod
     def _set_values(cls, data: ty.Any):
+        PathFrom = MAPOS[data.MAPLOCAL_OS_FROM]
+        PathTo = MAPOS[data.MAPLOCAL_OS_TO]
         if data.MAPLOCAL_FROM is None:
-            data.MAPLOCAL_FROM = MAPOS[data.MAPLOCAL_OS_FROM]("/home")
+            data.MAPLOCAL_FROM = PathFrom("/home")
         else:
-            data.MAPLOCAL_FROM = MAPOS[data.MAPLOCAL_OS_FROM](data.MAPLOCAL_FROM)
+            data.MAPLOCAL_FROM = PathFrom(data.MAPLOCAL_FROM)
         
         if data.MAPLOCAL_TO is None:
-            data.MAPLOCAL_TO = MAPOS[data.MAPLOCAL_OS_TO](f"\\\\wsl.localhost\\{os.environ['WSL_DISTRO_NAME']}\\home")
+            WSL_DISTRO_NAME =  get_wsl_distro_name()
+            if WSL_DISTRO_NAME is not None:
+                data.MAPLOCAL_TO = PathTo(f"\\\\wsl.localhost\\{WSL_DISTRO_NAME}\\home")
+            else:
+                data.MAPLOCAL_TO = None
         else:
-            data.MAPLOCAL_TO = MAPOS[data.MAPLOCAL_OS_TO](data.MAPLOCAL_TO)
+            data.MAPLOCAL_TO = PathTo(data.MAPLOCAL_TO)
 
         if data.MAPLOCAL_SCRIPT_PATH is None:
             p = get_maplocal_path()
@@ -74,10 +84,11 @@ class MapLocalEnv(BaseSettings):
             else:
                 logger.warning(f"for maplocal to load openpath and runcmd callable, {str(p)} must exist with functions `openpath` and `runcmd`")
         
+        
         if "MAPLOCAL_SCRIPT_PATH" not in data.model_fields:
             data.openpath = None
         p = data.MAPLOCAL_SCRIPT_PATH
-        if p is not None:
+        if p is not None and data.MAPLOCAL_FROM is not None and data.MAPLOCAL_TO is not None:
             data.openpath = load(p, "openpath")
         else:
             data.openpath = None
@@ -86,7 +97,7 @@ class MapLocalEnv(BaseSettings):
             data.runcmd = None
         else:
             p = data.MAPLOCAL_SCRIPT_PATH
-            if p is not None:
+            if p is not None and data.MAPLOCAL_FROM is not None and data.MAPLOCAL_TO is not None:
                 data.runcmd = load(p, "runcmd")
             else:
                 data.runcmd = None
