@@ -2,16 +2,19 @@ import pathlib
 import typing as ty
 from maplocal.env import MapLocalEnv
 from maplocal.maplocal import _remove_root, openlocal, maplocal
+import os
 
 MAPENV = MapLocalEnv()
 PATH_TEST = pathlib.Path(__file__)
 DIR_REPO = PATH_TEST.parents[1]
 
+def get_wsl_distro_name():
+    return (lambda: None if not "WSL_DISTRO_NAME" in os.environ else os.environ['WSL_DISTRO_NAME'])()
 
 class TestMAPENV:
     def test_MAPENV(self):
         assert MAPENV.MAPLOCAL_FROM == pathlib.PurePosixPath("/home")
-        assert MAPENV.MAPLOCAL_TO == pathlib.PureWindowsPath('//wsl.localhost/ubuntu_2004_jovyan/home')
+        assert MAPENV.MAPLOCAL_TO == pathlib.PureWindowsPath(f'//wsl.localhost/{get_wsl_distro_name()}/home')
 
 
 class TestRemoveRoot:
@@ -26,7 +29,7 @@ class TestMapLocal:
         path = maplocal(PATH_TEST, oldroot=MAPENV.MAPLOCAL_FROM, newroot=MAPENV.MAPLOCAL_TO)
         assert (
             str(path)
-            == "\\\\wsl.localhost\\ubuntu_2004_jovyan" + str(PATH_TEST).replace("/", "\\")
+            == f"\\\\wsl.localhost\\{get_wsl_distro_name()}" + str(PATH_TEST).replace("/", "\\")
         )
 
 
